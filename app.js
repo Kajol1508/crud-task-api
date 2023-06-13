@@ -15,7 +15,8 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
     // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    // res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
 
     // Set to true if you need the website to include cookies in the requests sent
     // to the API (e.g. in case you use sessions)
@@ -70,53 +71,63 @@ app.post('/tasklists', (req, res) => {
         });
 });
 // Full Update of object
-app.put('/tasklists/:tasklistId', (req, res)=>{
-    TaskList.findOneAndUpdate({_id: req.params.tasklistId}, {$set: req.body})
-    .then((taskList) => {
-        res.status(200).send(taskList);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.put('/tasklists/:tasklistId', (req, res) => {
+    TaskList.findOneAndUpdate({ _id: req.params.tasklistId }, { $set: req.body })
+        .then((taskList) => {
+            res.status(200).send(taskList);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 // update only one field of an object
-app.patch('/tasklists/:tasklistId', (req, res)=>{
-    TaskList.findOneAndUpdate({_id: req.params.tasklistId}, {$set: req.body})
-    .then((taskList) => {
-        res.status(200).send(taskList);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.patch('/tasklists/:tasklistId', (req, res) => {
+    TaskList.findOneAndUpdate({ _id: req.params.tasklistId }, { $set: req.body })
+        .then((taskList) => {
+            res.status(200).send(taskList);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 
-app.delete('/tasklists/:tasklistId', (req, res)=>{
-    TaskList.findByIdAndDelete(req.params.tasklistId)
-    .then((taskList) => {
-        res.status(200).send(taskList);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.delete('/tasklists/:tasklistId', (req, res) => {
+    const deleteAllContainingTask = (taskList) => {
+        Task.deleteMany({ _taskListId: req.params.tasklistId })
+            .then(() => { return taskList })
+            .catch((error) => {
+                console.log(error);
+                res.status(500);
 
-    });
+            });
+    };
+    const responseTaskList = TaskList.findByIdAndDelete(req.params.tasklistId)
+        .then((taskList) => {
+            deleteAllContainingTask(taskList);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
+
+        });
+    res.status(200).send(responseTaskList);
 });
 
 // Creating tasks now
-app.get('/tasklists/:tasklistId/tasks', (req, res)=>{
-    Task.find({_taskListId: req.params.tasklistId})
-    .then((tasks) => {
-        res.status(201).send(tasks);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.get('/tasklists/:tasklistId/tasks', (req, res) => {
+    Task.find({ _taskListId: req.params.tasklistId })
+        .then((tasks) => {
+            res.status(201).send(tasks);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 // Create task inside tasklist
 app.post('/tasklists/:tasklistId/tasks', (req, res) => {
@@ -133,40 +144,40 @@ app.post('/tasklists/:tasklistId/tasks', (req, res) => {
 });
 
 
-app.get('/tasklists/:tasklistId/tasks/:taskId', (req, res)=>{
-    Task.findOne({_taskListId: req.params.tasklistId, _id: req.params.taskId})
-    .then((task) => {
-        res.status(201).send(task);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.get('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
+    Task.findOne({ _taskListId: req.params.tasklistId, _id: req.params.taskId })
+        .then((task) => {
+            res.status(201).send(task);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 
-app.patch('/tasklists/:tasklistId/tasks/:taskId', (req, res)=>{
-    Task.findOneAndUpdate({_taskListId: req.params.tasklistId, _id: req.params.taskId}, {$set: req.body})
-    .then((task) => {
-        res.status(200).send(task);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+app.patch('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
+    Task.findOneAndUpdate({ _taskListId: req.params.tasklistId, _id: req.params.taskId }, { $set: req.body })
+        .then((task) => {
+            res.status(200).send(task);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 
-app.delete('/tasklists/:tasklistId/tasks/:taskId', (req, res)=>{
+app.delete('/tasklists/:tasklistId/tasks/:taskId', (req, res) => {
     Task.findByIdAndDelete(req.params.taskId)
-    .then((task) => {
-        res.status(200).send(task);
-    })
-    .catch((error) => {
-        console.log(error);
-        res.status(500);
+        .then((task) => {
+            res.status(200).send(task);
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(500);
 
-    });
+        });
 });
 
 // Using Arrow function
